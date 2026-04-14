@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ángulos de Euler — Giroscopio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0a0a1a;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.1rem;
+      text-align: center;
+      padding: 10px;
+      color: #a0c4ff;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    #canvas-container {
+      width: 100vw;
+      flex: 1;
+      position: relative;
+    }
+    canvas { display: block; }
+
+    #angles {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(10,10,30,0.92);
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 5px 18px;
+      border-top: 1px solid #1e3a5f;
+    }
+    .angle-box {
+      text-align: center;
+      flex: 1;
+    }
+    .angle-label {
+      font-size: 0.7rem;
+      color: #888;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .angle-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 2px;
+    }
+    .angle-value {
+      font-size: 1.4rem;
+      font-weight: bold;
+      font-variant-numeric: tabular-nums;
+    }
+    .yaw   .angle-name, .yaw   .angle-value { color: #ff6b6b; }
+    .pitch .angle-name, .pitch .angle-value { color: #6bffb8; }
+    .roll  .angle-name, .roll  .angle-value { color: #6bb8ff; }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 30px;
+      text-align: center;
+    }
+    #overlay h2 { font-size: 1.5rem; color: #a0c4ff; margin-bottom: 15px; }
+    #overlay p  { font-size: 0.95rem; color: #ccc; margin-bottom: 10px; line-height: 1.6; }
+    .legend { display: flex; flex-direction: column; gap: 8px; margin: 15px 0; width: 100%; max-width: 300px; }
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+    .dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; }
+    #startBtn {
+      margin-top: 20px;
+      padding: 14px 36px;
+      background: #a0c4ff;
+      color: #0a0a1a;
+      border: none;
+      border-radius: 30px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+    #axes-legend {
+      position: fixed;
+      top: 50px;
+      right: 10px;
+      background: rgba(10,10,30,0.8);
+      border: 1px solid #1e3a5f;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 0.72rem;
+      line-height: 1.8;
+    }
+    .ax-r { color: #ff6b6b; } .ax-g { color: #6bffb8; } .ax-b { color: #6bb8ff; }
+  </style>
+</head>
+<body>
+
+<h1>🌐 Ángulos de Euler</h1>
+<div id="canvas-container"><canvas id="c"></canvas></div>
+
+<div id="angles">
+  <div class="angle-box yaw">
+    <div class="angle-label">Yaw / Guiñada</div>
+    <div class="angle-name">ψ (Z)</div>
+    <div class="angle-value" id="val-yaw">0°</div>
+  </div>
+  <div class="angle-box pitch">
+    <div class="angle-label">Pitch / Cabeceo</div>
+    <div class="angle-name">θ (X)</div>
+    <div class="angle-value" id="val-pitch">0°</div>
+  </div>
+  <div class="angle-box roll">
+    <div class="angle-label">Roll / Alabeo</div>
+    <div class="angle-name">φ (Y)</div>
+    <div class="angle-value" id="val-roll">0°</div>
+  </div>
+</div>
+
+<div id="axes-legend">
+  <div class="ax-r">■ X — Pitch (rojo)</div>
+  <div class="ax-g">■ Y — Roll (verde)</div>
+  <div class="ax-b">■ Z — Yaw (azul)</div>
+</div>
+
+<div id="overlay">
+  <h2>🎮 Ángulos de Euler<br/>con tu Giroscopio</h2>
+  <p>Mueve tu celular y observa cómo los 3 ángulos de Euler describen su orientación en tiempo real.</p>
+  <div class="legend">
+    <div class="legend-item"><div class="dot" style="background:#ff6b6b"></div><span><b>Yaw (ψ)</b> — Girar sobre eje Z (izq/der)</span></div>
+    <div class="legend-item"><div class="dot" style="background:#6bffb8"></div><span><b>Pitch (θ)</b> — Inclinar adelante/atrás</span></div>
+    <div class="legend-item"><div class="dot" style="background:#6bb8ff"></div><span><b>Roll (φ)</b> — Ladear el celular</span></div>
+  </div>
+  <p style="font-size:0.8rem;color:#888;">Se pedirá permiso para acceder al giroscopio (requerido en iOS).</p>
+  <button id="startBtn">▶ Iniciar</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// --- Three.js Setup ---
+const container = document.getElementById('canvas-container');
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
+camera.position.set(0, 0, 4);
+
+// Resize
+function resize() {
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Lighting
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+const dLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dLight.position.set(5, 5, 5);
+scene.add(dLight);
+
+// Cube with colored faces
+const geo = new THREE.BoxGeometry(1.4, 1.4, 1.4);
+const materials = [
+  new THREE.MeshLambertMaterial({ color: 0xff4444 }),  // +X
+  new THREE.MeshLambertMaterial({ color: 0xff9944 }),  // -X
+  new THREE.MeshLambertMaterial({ color: 0x44ff88 }),  // +Y (top - green)
+  new THREE.MeshLambertMaterial({ color: 0x44bbff }),  // -Y
+  new THREE.MeshLambertMaterial({ color: 0xdddddd }),  // +Z (front - white)
+  new THREE.MeshLambertMaterial({ color: 0x9966ff }),  // -Z
+];
+const cube = new THREE.Mesh(geo, materials);
+scene.add(cube);
+
+// Edges
+const edges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(geo),
+  new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.4, transparent: true })
+);
+cube.add(edges);
+
+// Axes helper
+const axesHelper = new THREE.AxesHelper(1.2);
+scene.add(axesHelper);
+
+// Grid
+const grid = new THREE.GridHelper(6, 10, 0x222244, 0x111133);
+grid.position.y = -1.5;
+scene.add(grid);
+
+// State
+let yaw = 0, pitch = 0, roll = 0;
+let gyroActive = false;
+
+const euler = new THREE.Euler(0, 0, 0, 'ZXY');
+
+function updateDisplay(a, b, g) {
+  yaw   = Math.round(a);
+  pitch = Math.round(b);
+  roll  = Math.round(g);
+  document.getElementById('val-yaw').textContent   = yaw   + '°';
+  document.getElementById('val-pitch').textContent = pitch + '°';
+  document.getElementById('val-roll').textContent  = roll  + '°';
+  euler.set(
+    THREE.MathUtils.degToRad(b),
+    THREE.MathUtils.degToRad(g),
+    THREE.MathUtils.degToRad(a),
+    'ZXY'
+  );
+  cube.rotation.copy(euler);
+}
+
+// Demo rotation when no gyro
+let demoAngle = 0;
+function demoRotate() {
+  demoAngle += 0.005;
+  cube.rotation.x = demoAngle * 0.7;
+  cube.rotation.y = demoAngle;
+  cube.rotation.z = demoAngle * 0.4;
+  const a = Math.round(THREE.MathUtils.radToDeg(cube.rotation.z));
+  const b = Math.round(THREE.MathUtils.radToDeg(cube.rotation.x));
+  const g = Math.round(THREE.MathUtils.radToDeg(cube.rotation.y));
+  document.getElementById('val-yaw').textContent   = ((a % 360 + 360) % 360) + '°';
+  document.getElementById('val-pitch').textContent = ((b % 360 + 360) % 360) + '°';
+  document.getElementById('val-roll').textContent  = ((g % 360 + 360) % 360) + '°';
+}
+
+// Animation loop
+function animate() {
+  requestAnimationFrame(animate);
+  if (!gyroActive) demoRotate();
+  renderer.render(scene, camera);
+}
+animate();
+
+// Gyroscope
+function startGyro() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iOS 13+
+    DeviceOrientationEvent.requestPermission()
+      .then(state => {
+        if (state === 'granted') enableGyro();
+        else alert('Permiso denegado. Actívalo en Ajustes > Safari.');
+      }).catch(console.error);
+  } else {
+    enableGyro();
+  }
+}
+
+function enableGyro() {
+  gyroActive = true;
+  window.addEventListener('deviceorientation', (e) => {
+    if (e.alpha === null) return;
+    updateDisplay(e.alpha, e.beta, e.gamma);
+  }, true);
+}
+
+// Start button
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('overlay').style.display = 'none';
+  startGyro();
+});
+</script>
+</body>
+</html>
