@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ángulos de Euler — Piloto Espacial</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap');
+
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background:#020510;
+      color:#fff;
+      font-family:'Rajdhani', sans-serif;
+      height:100vh;
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+
+    #header {
+      width:100%;
+      text-align:center;
+      padding:8px;
+      background:rgba(2,5,16,0.97);
+      border-bottom:1px solid rgba(0,200,255,0.2);
+      font-family:'Orbitron', monospace;
+      font-size:0.75rem;
+      color:#00c8ff;
+      letter-spacing:3px;
+      text-transform:uppercase;
+      z-index:5;
+    }
+
+    #canvas-container {
+      width:100vw;
+      flex:1;
+      position:relative;
+    }
+
+    canvas { display:block; }
+
+    /* HUD corners */
+    .hud-corner {
+      position:fixed;
+      width:20px; height:20px;
+      border-color:rgba(0,200,255,0.4);
+      border-style:solid;
+      z-index:4;
+    }
+    #hc-tl { top:42px; left:8px; border-width:1px 0 0 1px; }
+    #hc-tr { top:42px; right:8px; border-width:1px 1px 0 0; }
+
+    /* BOTTOM BAR */
+    #bottom {
+      position:fixed;
+      bottom:0; left:0;
+      width:100%;
+      background:rgba(2,5,16,0.97);
+      border-top:1px solid rgba(0,200,255,0.2);
+      padding:8px 10px 16px;
+      z-index:5;
+    }
+
+    /* EXPLORE UI */
+    #angles {
+      display:flex;
+      justify-content:space-around;
+      margin-bottom:4px;
+    }
+
+    .angle-box { text-align:center; flex:1; }
+    .angle-label {
+      font-size:0.65rem;
+      color:#556;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .angle-name {
+      font-size:1rem;
+      font-weight:bold;
+      font-family:'Orbitron', monospace;
+    }
+    .angle-value {
+      font-size:1.8rem;
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+      font-family:'Orbitron', monospace;
+    }
+    .yaw   .angle-name, .yaw   .angle-value { color:#ff4d6d; }
+    .pitch .angle-name, .pitch .angle-value { color:#00e5a0; }
+    .roll  .angle-name, .roll  .angle-value { color:#00c8ff; }
+
+    .sep {
+      width:1px;
+      background:rgba(0,200,255,0.15);
+      margin:4px 0;
+    }
+
+    /* GAME UI */
+    #game-ui {
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      gap:4px;
+      width:100%;
+    }
+
+    /* Timer ring */
+    #timer-wrap {
+      position:fixed;
+      top:52px; left:10px;
+      width:72px; height:72px;
+      z-index:6;
+    }
+    #timer-svg { transform:rotate(-90deg); }
+    #timer-circle {
+      fill:none;
+      stroke:#00c8ff;
+      stroke-width:4;
+      stroke-dasharray:157;
+      stroke-dashoffset:0;
+      transition:stroke 0.3s;
+    }
+    #timer-text {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      font-size:1.5rem;
+      font-weight:bold;
+      color:#00c8ff;
+      font-family:'Orbitron', monospace;
+    }
+
+    .game-angles-row {
+      display:flex;
+      justify-content:space-around;
+      width:100%;
+    }
+
+    .ga-box { text-align:center; flex:1; }
+    .ga-label {
+      font-size:0.65rem;
+      color:#556;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .ga-cur {
+      font-size:1.5rem;
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+      font-family:'Orbitron', monospace;
+    }
+    .ga-tgt { font-size:0.85rem; color:#667; font-variant-numeric:tabular-nums; }
+    .ga-diff { font-size:0.8rem; font-variant-numeric:tabular-nums; font-family:'Orbitron', monospace; }
+    .ga-bar-wrap { width:80%; margin:2px auto; height:3px; background:rgba(255,255,255,0.1); border-radius:2px; }
+    .ga-bar { height:3px; border-radius:2px; transition:width 0.1s, background 0.1s; }
+
+    .yaw-g   .ga-cur { color:#ff4d6d; }
+    .pitch-g .ga-cur { color:#00e5a0; }
+    .roll-g  .ga-cur { color:#00c8ff; }
+
+    #level-score-row {
+      display:flex;
+      gap:14px;
+      font-size:0.9rem;
+      align-items:center;
+      font-family:'Orbitron', monospace;
+    }
+
+    #confirm-btn {
+      padding:10px 28px;
+      background:linear-gradient(135deg,#00c8ff,#0070ff);
+      color:#020510;
+      border:none;
+      border-radius:4px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      letter-spacing:1px;
+      font-family:'Orbitron', monospace;
+      text-transform:uppercase;
+      clip-path:polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+    #confirm-btn:disabled { opacity:0.3; cursor:default; }
+
+    #feedback {
+      font-size:0.95rem;
+      color:#ffd700;
+      min-height:18px;
+      text-align:center;
+      font-family:'Orbitron', monospace;
+      letter-spacing:1px;
+    }
+
+    /* OVERLAY */
+    #overlay {
+      position:fixed;
+      inset:0;
+      background:rgba(2,5,16,0.96);
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      z-index:20;
+      padding:28px;
+      text-align:center;
+    }
+
+    #overlay h2 {
+      font-size:1.5rem;
+      color:#00c8ff;
+      margin-bottom:12px;
+      font-family:'Orbitron', monospace;
+      letter-spacing:2px;
+    }
+
+    #overlay p {
+      font-size:1rem;
+      color:#99aacc;
+      margin-bottom:6px;
+      line-height:1.6;
+      max-width:320px;
+    }
+
+    .legend {
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin:12px 0;
+      width:100%;
+      max-width:300px;
+    }
+
+    .legend-item {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:0.95rem;
+      background:rgba(0,200,255,0.05);
+      padding:6px 12px;
+      border-radius:4px;
+      border-left:2px solid;
+    }
+    .legend-item.l-yaw   { border-color:#ff4d6d; }
+    .legend-item.l-pitch { border-color:#00e5a0; }
+    .legend-item.l-roll  { border-color:#00c8ff; }
+
+    .dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+
+    .btn-row { display:flex; gap:16px; margin-top:18px; }
+
+    .main-btn {
+      padding:14px 28px;
+      border:none;
+      border-radius:4px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      letter-spacing:2px;
+      font-family:'Orbitron', monospace;
+      text-transform:uppercase;
+      clip-path:polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+    #btn-explore { background:#00e5a0; color:#020510; }
+    #btn-play    { background:#ff4d6d; color:#fff; }
+
+    /* RESULT OVERLAY */
+    #result-overlay {
+      position:fixed;
+      inset:0;
+      background:rgba(2,5,16,0.97);
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      z-index:30;
+      padding:30px;
+      text-align:center;
+    }
+
+    #result-overlay h2 {
+      font-size:1.6rem;
+      color:#ffd700;
+      margin-bottom:8px;
+      font-family:'Orbitron', monospace;
+    }
+
+    .big-score {
+      font-size:4rem;
+      font-weight:900;
+      color:#00c8ff;
+      margin:8px 0;
+      font-family:'Orbitron', monospace;
+    }
+
+    .level-scores {
+      font-size:1rem;
+      color:#667;
+      line-height:2.2;
+      margin-bottom:12px;
+      font-family:'Orbitron', monospace;
+    }
+
+    .grade {
+      font-size:1.3rem;
+      color:#00e5a0;
+      margin-bottom:20px;
+      font-family:'Orbitron', monospace;
+    }
+
+    #play-again-btn {
+      padding:14px 36px;
+      background:linear-gradient(135deg,#00c8ff,#0070ff);
+      color:#020510;
+      border:none;
+      border-radius:4px;
+      font-size:1rem;
+      font-weight:700;
+      cursor:pointer;
+      font-family:'Orbitron', monospace;
+      text-transform:uppercase;
+      letter-spacing:2px;
+    }
+
+    #axes-legend {
+      position:fixed;
+      top:50px;
+      right:8px;
+      background:rgba(2,5,16,0.85);
+      border:1px solid rgba(0,200,255,0.2);
+      border-radius:4px;
+      padding:7px 12px;
+      font-size:0.75rem;
+      line-height:2.2;
+      z-index:5;
+      font-family:'Orbitron', monospace;
+    }
+    .ax-r { color:#ff4d6d; }
+    .ax-g { color:#00e5a0; }
+    .ax-b { color:#00c8ff; }
+
+    #ghost-legend {
+      position:fixed;
+      bottom:160px;
+      right:8px;
+      background:rgba(2,5,16,0.75);
+      border:1px solid rgba(255,215,0,0.25);
+      border-radius:4px;
+      padding:5px 10px;
+      font-size:0.7rem;
+      color:#ffd700;
+      z-index:5;
+      display:none;
+      font-family:'Orbitron', monospace;
+      letter-spacing:1px;
+    }
+
+    @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.2} }
+    .pulse-red { animation:pulse-red 0.5s infinite; }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<div id="header">✈ Ángulos de Euler — Piloto Espacial</div>
+
+<div class="hud-corner" id="hc-tl"></div>
+<div class="hud-corner" id="hc-tr"></div>
+
+<div id="canvas-container"><canvas id="c"></canvas></div>
+
+<div id="axes-legend">
+  <div class="ax-r">■ Yaw ψ</div>
+  <div class="ax-g">■ Pitch θ</div>
+  <div class="ax-b">■ Roll φ</div>
+</div>
+
+<div id="ghost-legend">◈ Dorado = objetivo</div>
+
+<!-- Timer -->
+<div id="timer-wrap" style="display:none">
+  <svg id="timer-svg" width="72" height="72" viewBox="0 0 72 72">
+    <circle cx="36" cy="36" r="28" fill="none" stroke="#0a1428" stroke-width="4"/>
+    <circle id="timer-circle" cx="36" cy="36" r="28"/>
+  </svg>
+  <div id="timer-text">—</div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottom">
+  <div id="explore-ui">
+    <div id="angles">
+      <div class="angle-box yaw">
+        <div class="angle-label">Yaw / Guiñada</div>
+        <div class="angle-name">ψ</div>
+        <div class="angle-value" id="val-yaw">0°</div>
+      </div>
+      <div class="sep"></div>
+      <div class="angle-box pitch">
+        <div class="angle-label">Pitch / Cabeceo</div>
+        <div class="angle-name">θ</div>
+        <div class="angle-value" id="val-pitch">0°</div>
+      </div>
+      <div class="sep"></div>
+      <div class="angle-box roll">
+        <div class="angle-label">Roll / Alabeo</div>
+        <div class="angle-name">φ</div>
+        <div class="angle-value" id="val-roll">0°</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-ui">
+    <div class="game-angles-row">
+      <div class="ga-box yaw-g">
+        <div class="ga-label">Yaw ψ</div>
+        <div class="ga-cur" id="gc-yaw">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-yaw">—</span></div>
+        <div class="ga-bar-wrap"><div class="ga-bar" id="gb-yaw"></div></div>
+        <div class="ga-diff" id="gd-yaw">Δ —</div>
+      </div>
+      <div class="ga-box pitch-g">
+        <div class="ga-label">Pitch θ</div>
+        <div class="ga-cur" id="gc-pitch">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-pitch">—</span></div>
+        <div class="ga-bar-wrap"><div class="ga-bar" id="gb-pitch"></div></div>
+        <div class="ga-diff" id="gd-pitch">Δ —</div>
+      </div>
+      <div class="ga-box roll-g">
+        <div class="ga-label">Roll φ</div>
+        <div class="ga-cur" id="gc-roll">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-roll">—</span></div>
+        <div class="ga-bar-wrap"><div class="ga-bar" id="gb-roll"></div></div>
+        <div class="ga-diff" id="gd-roll">Δ —</div>
+      </div>
+    </div>
+    <div id="level-score-row">
+      <span style="color:#00c8ff">LVL <b id="cur-level">1</b>/3</span>
+      <span>PTS: <b id="cur-score">0</b></span>
+      <span style="color:#445;font-size:0.7rem">L1:<b id="s1">—</b> L2:<b id="s2">—</b> L3:<b id="s3">—</b></span>
+    </div>
+    <div id="feedback"></div>
+    <button id="confirm-btn">⬡ Confirmar orientación</button>
+  </div>
+</div>
+
+<!-- MAIN OVERLAY -->
+<div id="overlay">
+  <h2>✈ PILOTO ESPACIAL<br/>Ángulos de Euler</h2>
+  <p>Mueve tu celular y observa cómo los 3 ángulos de Euler describen la orientación de tu nave en tiempo real.</p>
+  <div class="legend">
+    <div class="legend-item l-yaw"><div class="dot" style="background:#ff4d6d"></div><span><b>Yaw (ψ)</b> — Girar horizontal</span></div>
+    <div class="legend-item l-pitch"><div class="dot" style="background:#00e5a0"></div><span><b>Pitch (θ)</b> — Inclinar adelante/atrás</span></div>
+    <div class="legend-item l-roll"><div class="dot" style="background:#00c8ff"></div><span><b>Roll (φ)</b> — Ladear la nave</span></div>
+  </div>
+  <p style="font-size:0.82rem;color:#556;">En el modo Jugar: imita la orientación del avión dorado antes de que se acabe el tiempo.</p>
+  <div class="btn-row">
+    <button class="main-btn" id="btn-explore">EXPLORAR</button>
+    <button class="main-btn" id="btn-play">JUGAR</button>
+  </div>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div id="result-overlay">
+  <h2>MISIÓN COMPLETA</h2>
+  <div class="big-score" id="final-score">0</div>
+  <div class="level-scores" id="level-breakdown"></div>
+  <div class="grade" id="grade-text"></div>
+  <button id="play-again-btn">NUEVA MISIÓN</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// ─── RENDERER SETUP ───────────────────────────────────────────────
+const container = document.getElementById('canvas-container');
+const canvas    = document.getElementById('c');
+const renderer  = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 2000);
+camera.position.set(0, 1.5, 6);
+camera.lookAt(0, 0, 0);
+
+function resize() {
+  const w = container.clientWidth, h = container.clientHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ─── LIGHTS ───────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x0a1020, 1.2));
+const sun = new THREE.DirectionalLight(0x80d0ff, 2.5);
+sun.position.set(5, 8, 5);
+scene.add(sun);
+const rimLight = new THREE.DirectionalLight(0xff4d6d, 0.6);
+rimLight.position.set(-5, -3, -5);
+scene.add(rimLight);
+const fillLight = new THREE.DirectionalLight(0x00e5a0, 0.4);
+fillLight.position.set(3, -2, 3);
+scene.add(fillLight);
+
+// ─── STARFIELD ────────────────────────────────────────────────────
+function createStarfield() {
+  const geo = new THREE.BufferGeometry();
+  const count = 2000;
+  const pos = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  const colors = new Float32Array(count * 3);
+  const starColors = [
+    [1, 1, 1], [0.7, 0.85, 1], [1, 0.9, 0.7],
+    [0.8, 0.9, 1], [0.6, 0.8, 1]
+  ];
+  for (let i = 0; i < count; i++) {
+    const r = 800 + Math.random() * 400;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    pos[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    pos[i*3+2] = r * Math.cos(phi);
+    sizes[i] = Math.random() * 2.5 + 0.5;
+    const c = starColors[Math.floor(Math.random() * starColors.length)];
+    colors[i*3] = c[0]; colors[i*3+1] = c[1]; colors[i*3+2] = c[2];
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.8,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.9,
+    sizeAttenuation: true
+  });
+  return new THREE.Points(geo, mat);
+}
+const stars = createStarfield();
+scene.add(stars);
+
+// Nebula cloud (distant colored fog planes)
+function createNebula() {
+  const group = new THREE.Group();
+  const colors = [0x1a0533, 0x001a3a, 0x0a1a00, 0x2a0010];
+  for (let i = 0; i < 6; i++) {
+    const geo = new THREE.PlaneGeometry(600, 600);
+    const mat = new THREE.MeshBasicMaterial({
+      color: colors[i % colors.length],
+      transparent: true,
+      opacity: 0.08 + Math.random() * 0.06,
+      side: THREE.DoubleSide
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.x = Math.random() * Math.PI;
+    mesh.rotation.y = Math.random() * Math.PI;
+    mesh.position.set(
+      (Math.random()-0.5)*400,
+      (Math.random()-0.5)*400,
+      (Math.random()-0.5)*400
+    );
+    group.add(mesh);
+  }
+  return group;
+}
+scene.add(createNebula());
+
+// ─── AIRPLANE MODEL ───────────────────────────────────────────────
+function buildAirplane(color = 0x88ccff, emissive = 0x001133, opacity = 1, wireframe = false) {
+  const group = new THREE.Group();
+
+  const mat = (c, e=0x000000, o=opacity) => new THREE.MeshLambertMaterial({
+    color: c, emissive: e,
+    transparent: o < 1, opacity: o,
+    wireframe
+  });
+
+  // Fuselage
+  const fuseGeo = new THREE.CylinderGeometry(0.12, 0.08, 2.2, 12);
+  const fuse = new THREE.Mesh(fuseGeo, mat(color, emissive));
+  fuse.rotation.z = Math.PI / 2;
+  group.add(fuse);
+
+  // Nose cone
+  const noseGeo = new THREE.ConeGeometry(0.12, 0.55, 12);
+  const nose = new THREE.Mesh(noseGeo, mat(color, emissive));
+  nose.rotation.z = -Math.PI / 2;
+  nose.position.x = 1.37;
+  group.add(nose);
+
+  // Main wings
+  const wingGeo = new THREE.BufferGeometry();
+  const wv = new Float32Array([
+    0.3,0,0,   -0.5,0,0,   -0.5,0,-1.8,
+    0.3,0,0,   -0.5,0,-1.8, 0.2,0,-0.6,
+    0.3,0,0,   -0.5,0,1.8,  -0.5,0,0,
+    0.3,0,0,    0.2,0,0.6,  -0.5,0,1.8,
+  ]);
+  wingGeo.setAttribute('position', new THREE.BufferAttribute(wv, 3));
+  wingGeo.computeVertexNormals();
+  const wings = new THREE.Mesh(wingGeo, mat(color, emissive));
+  wings.position.x = 0;
+  group.add(wings);
+
+  // Wing bottom face
+  const wingGeo2 = wingGeo.clone();
+  const wing2 = new THREE.Mesh(wingGeo2, mat(color, emissive));
+  wing2.rotation.x = Math.PI;
+  group.add(wing2);
+
+  // Horizontal stabilizer (tail wings)
+  const stabGeo = new THREE.BufferGeometry();
+  const sv = new Float32Array([
+    -0.9,0,0,  -1.1,0,0,  -1.1,0,-0.7,
+    -0.9,0,0,  -1.1,0,-0.7,-0.85,0,-0.3,
+    -0.9,0,0,  -1.1,0,0.7, -1.1,0,0,
+    -0.9,0,0,  -0.85,0,0.3,-1.1,0,0.7,
+  ]);
+  stabGeo.setAttribute('position', new THREE.BufferAttribute(sv, 3));
+  stabGeo.computeVertexNormals();
+  const stab = new THREE.Mesh(stabGeo, mat(color, emissive));
+  group.add(stab);
+
+  const stabGeo2 = stabGeo.clone();
+  const stab2 = new THREE.Mesh(stabGeo2, mat(color, emissive));
+  stab2.rotation.x = Math.PI;
+  group.add(stab2);
+
+  // Vertical stabilizer (rudder)
+  const rudGeo = new THREE.BufferGeometry();
+  const rv = new Float32Array([
+    -0.85,0,0, -1.15,0,0, -1.1,0.5,0,
+    -0.85,0,0, -1.1,0.5,0, -0.8,0.35,0
+  ]);
+  rudGeo.setAttribute('position', new THREE.BufferAttribute(rv, 3));
+  rudGeo.computeVertexNormals();
+  const rud = new THREE.Mesh(rudGeo, mat(color, emissive));
+  group.add(rud);
+
+  // Engine pods
+  [-0.7, 0.7].forEach(z => {
+    const engGeo = new THREE.CylinderGeometry(0.065, 0.08, 0.55, 8);
+    const eng = new THREE.Mesh(engGeo, mat(0x223344, 0x000011));
+    eng.rotation.z = Math.PI / 2;
+    eng.position.set(-0.1, -0.12, z);
+    group.add(eng);
+
+    const nozzleGeo = new THREE.ConeGeometry(0.065, 0.18, 8);
+    const nozzle = new THREE.Mesh(nozzleGeo, mat(0x112233));
+    nozzle.rotation.z = Math.PI / 2;
+    nozzle.position.set(-0.39, -0.12, z);
+    group.add(nozzle);
+  });
+
+  // Cockpit
+  const cockGeo = new THREE.SphereGeometry(0.095, 8, 6, 0, Math.PI*2, 0, Math.PI*0.55);
+  const cock = new THREE.Mesh(cockGeo, mat(0x44aadd, 0x003366, Math.min(opacity, 0.7)));
+  cock.rotation.z = Math.PI;
+  cock.position.set(0.75, 0.09, 0);
+  group.add(cock);
+
+  // Nav lights (only for main plane)
+  if (!wireframe && opacity === 1) {
+    const redLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.03, 6, 6),
+      new THREE.MeshBasicMaterial({ color: 0xff2222 })
+    );
+    redLight.position.set(-0.1, 0, -1.7);
+    group.add(redLight);
+
+    const greenLight = new THREE.Mesh(
+      new THREE.SphereGeometry(0.03, 6, 6),
+      new THREE.MeshBasicMaterial({ color: 0x22ff88 })
+    );
+    greenLight.position.set(-0.1, 0, 1.7);
+    group.add(greenLight);
+
+    // Engine glow
+    [-0.7, 0.7].forEach(z => {
+      const glowGeo = new THREE.ConeGeometry(0.06, 0.3, 8);
+      const glowMat = new THREE.MeshBasicMaterial({ color: 0x0088ff, transparent: true, opacity: 0.5 });
+      const glow = new THREE.Mesh(glowGeo, glowMat);
+      glow.rotation.z = -Math.PI / 2;
+      glow.position.set(-0.62, -0.12, z);
+      group.add(glow);
+    });
+  }
+
+  return group;
+}
+
+// Main airplane
+const airplane = buildAirplane(0x88bbdd, 0x001122);
+scene.add(airplane);
+
+// Ghost airplane (target) — golden translucent
+const ghostPlane = buildAirplane(0xffd700, 0x332200, 0.35);
+ghostPlane.visible = false;
+scene.add(ghostPlane);
+
+// Axes helper attached to plane
+const axesHelper = new THREE.AxesHelper(2.2);
+airplane.add(axesHelper);
+
+// ─── GRID / REFERENCE PLANE ───────────────────────────────────────
+const grid = new THREE.GridHelper(20, 20, 0x001133, 0x000a1a);
+grid.position.y = -3;
+scene.add(grid);
+
+// ─── TRAIL SYSTEM ─────────────────────────────────────────────────
+const TRAIL_LENGTH = 60;
+const trailPositions = [];
+const trailGeo = new THREE.BufferGeometry();
+const trailPos = new Float32Array(TRAIL_LENGTH * 3);
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3));
+
+const trailMat = new THREE.LineBasicMaterial({
+  color: 0x00c8ff,
+  transparent: true,
+  opacity: 0.6,
+  vertexColors: false
+});
+const trail = new THREE.Line(trailGeo, trailMat);
+scene.add(trail);
+
+// Trail particles (small dots along trail)
+const trailDotsGeo = new THREE.BufferGeometry();
+const trailDotsPos = new Float32Array(TRAIL_LENGTH * 3);
+trailDotsGeo.setAttribute('position', new THREE.BufferAttribute(trailDotsPos, 3));
+const trailDotsMat = new THREE.PointsMaterial({
+  color: 0x00e5a0,
+  size: 0.06,
+  transparent: true,
+  opacity: 0.5
+});
+const trailDots = new THREE.Points(trailDotsGeo, trailDotsMat);
+scene.add(trailDots);
+
+function updateTrail() {
+  // World position of airplane tip
+  const tip = new THREE.Vector3(1.4, 0, 0);
+  tip.applyEuler(airplane.rotation);
+
+  trailPositions.unshift(tip.clone());
+  if (trailPositions.length > TRAIL_LENGTH) trailPositions.pop();
+
+  const posAttr = trailGeo.getAttribute('position');
+  const dotsAttr = trailDotsGeo.getAttribute('position');
+  for (let i = 0; i < TRAIL_LENGTH; i++) {
+    const p = trailPositions[i] || new THREE.Vector3();
+    posAttr.setXYZ(i, p.x, p.y, p.z);
+    dotsAttr.setXYZ(i, p.x, p.y, p.z);
+  }
+  posAttr.needsUpdate = true;
+  dotsAttr.needsUpdate = true;
+  trailGeo.setDrawRange(0, trailPositions.length);
+  trailDotsGeo.setDrawRange(0, trailPositions.length);
+
+  // Fade trail opacity
+  const age = trailPositions.length / TRAIL_LENGTH;
+  trailMat.opacity = 0.15 + age * 0.45;
+}
+
+// ─── GHOST COLOR UPDATE ───────────────────────────────────────────
+function updateGhostColor(avgDiff, tol) {
+  const t = Math.min(avgDiff / tol, 1);
+  // green → yellow → red
+  let r, g, b;
+  if (t < 0.5) {
+    r = Math.round(t * 2 * 255); g = 200; b = 50;
+  } else {
+    r = 255; g = Math.round((1 - (t-0.5)*2) * 200); b = 0;
+  }
+  const hex = (r << 16) | (g << 8) | b;
+  ghostPlane.traverse(child => {
+    if (child.isMesh && child.material) {
+      child.material.color.setHex(hex);
+      child.material.emissive.setHex(Math.round(hex * 0.15));
+    }
+  });
+}
+
+// ─── EULER ROTATION ───────────────────────────────────────────────
+const euler = new THREE.Euler(0,0,0,'ZXY');
+function setCubeRotation(y, p, r) {
+  euler.set(
+    THREE.MathUtils.degToRad(p),
+    THREE.MathUtils.degToRad(r),
+    THREE.MathUtils.degToRad(y),
+    'ZXY'
+  );
+  airplane.rotation.copy(euler);
+}
+function setGhostRotation(y, p, r) {
+  ghostPlane.rotation.copy(new THREE.Euler(
+    THREE.MathUtils.degToRad(p),
+    THREE.MathUtils.degToRad(r),
+    THREE.MathUtils.degToRad(y),
+    'ZXY'
+  ));
+}
+
+// ─── STATE ────────────────────────────────────────────────────────
+let gyroActive = false, demoAngle = 0;
+let mode = 'none';
+let curYaw = 0, curPitch = 0, curRoll = 0;
+let targetYaw = 0, targetPitch = 0, targetRoll = 0;
+let gameLevel = 1, levelScores = [0,0,0], totalScore = 0;
+
+const TIME_LIMITS = [20, 15, 12];
+const MAX_PTS     = [300, 400, 500];
+let timerSeconds = 0, timerInterval = null, levelStartTime = 0;
+
+// ─── GYRO ─────────────────────────────────────────────────────────
+function startGyro() {
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(s => { if (s === 'granted') enableGyro(); }).catch(console.error);
+  } else { enableGyro(); }
+}
+function enableGyro() {
+  gyroActive = true;
+  window.addEventListener('deviceorientation', (e) => {
+    if (e.alpha === null) return;
+    curYaw   = Math.round(e.alpha);
+    curPitch = Math.round(e.beta);
+    curRoll  = Math.round(e.gamma);
+    setCubeRotation(curYaw, curPitch, curRoll);
+    if (mode === 'explore') updateExploreUI();
+    if (mode === 'game')    updateGameAnglesDisplay();
+  }, true);
+}
+
+// ─── DEMO ROTATION ────────────────────────────────────────────────
+function demoRotate() {
+  demoAngle += 0.004;
+  airplane.rotation.x = demoAngle * 0.5;
+  airplane.rotation.y = demoAngle;
+  airplane.rotation.z = Math.sin(demoAngle * 0.7) * 0.4;
+  curYaw   = Math.round(THREE.MathUtils.radToDeg(airplane.rotation.z));
+  curPitch = Math.round(THREE.MathUtils.radToDeg(airplane.rotation.x));
+  curRoll  = Math.round(THREE.MathUtils.radToDeg(airplane.rotation.y));
+  if (mode === 'explore') updateExploreUI();
+  if (mode === 'game')    updateGameAnglesDisplay();
+}
+
+function updateExploreUI() {
+  document.getElementById('val-yaw').textContent   = ((curYaw % 360 + 360) % 360) + '°';
+  document.getElementById('val-pitch').textContent = ((curPitch % 360 + 360) % 360) + '°';
+  document.getElementById('val-roll').textContent  = ((curRoll % 360 + 360) % 360) + '°';
+}
+
+// ─── ANGLE HELPERS ────────────────────────────────────────────────
+function angleDiff(a, b) {
+  let d = Math.abs(a - b) % 360;
+  return d > 180 ? 360 - d : d;
+}
+function diffColor(d, tol) {
+  if (d <= tol * 0.2) return '#00e5a0';
+  if (d <= tol * 0.5) return '#ffd700';
+  return '#ff4d6d';
+}
+
+function updateGameAnglesDisplay() {
+  const tol = [35, 25, 15][gameLevel - 1];
+  const dy = angleDiff(curYaw, targetYaw);
+  const dp = angleDiff(curPitch, targetPitch);
+  const dr = angleDiff(curRoll, targetRoll);
+  const avgDiff = (dy + dp + dr) / 3;
+
+  [
+    ['gc-yaw',   'gd-yaw',   'gb-yaw',   curYaw,   targetYaw,   dy],
+    ['gc-pitch', 'gd-pitch', 'gb-pitch', curPitch, targetPitch, dp],
+    ['gc-roll',  'gd-roll',  'gb-roll',  curRoll,  targetRoll,  dr],
+  ].forEach(([cId, dId, bId, cur, , d]) => {
+    document.getElementById(cId).textContent = cur + '°';
+    const del = document.getElementById(dId);
+    del.textContent = 'Δ ' + d + '°';
+    del.style.color = diffColor(d, tol);
+    const bar = document.getElementById(bId);
+    const pct = Math.max(0, 100 - (d / tol) * 100);
+    bar.style.width = pct + '%';
+    bar.style.background = diffColor(d, tol);
+  });
+
+  if (ghostPlane.visible) updateGhostColor(avgDiff, tol);
+}
+
+// ─── TIMER ────────────────────────────────────────────────────────
+const CIRCUMF = 2 * Math.PI * 28;
+const timerCircle = document.getElementById('timer-circle');
+const timerText   = document.getElementById('timer-text');
+timerCircle.style.strokeDasharray = CIRCUMF;
+
+function updateTimerUI(remaining, total) {
+  timerCircle.style.strokeDashoffset = CIRCUMF * (1 - remaining / total);
+  timerText.textContent = remaining;
+  if (remaining <= 5) {
+    timerCircle.style.stroke = timerText.style.color = '#ff4d6d';
+    timerText.classList.add('pulse-red');
+  } else if (remaining <= 10) {
+    timerCircle.style.stroke = timerText.style.color = '#ffd700';
+    timerText.classList.remove('pulse-red');
+  } else {
+    timerCircle.style.stroke = timerText.style.color = '#00c8ff';
+    timerText.classList.remove('pulse-red');
+  }
+}
+
+function startTimer(seconds) {
+  clearInterval(timerInterval);
+  timerSeconds = seconds;
+  updateTimerUI(timerSeconds, seconds);
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerUI(timerSeconds, seconds);
+    if (timerSeconds <= 0) { clearInterval(timerInterval); timeOut(); }
+  }, 1000);
+}
+function stopTimer() { clearInterval(timerInterval); }
+
+function timeOut() {
+  levelScores[gameLevel - 1] = 0;
+  totalScore = levelScores.reduce((a,b) => a+b, 0);
+  document.getElementById(['s1','s2','s3'][gameLevel-1]).textContent = 0;
+  document.getElementById('cur-score').textContent = totalScore;
+  document.getElementById('feedback').textContent = '⏰ TIEMPO AGOTADO — 0 PTS';
+  document.getElementById('confirm-btn').disabled = true;
+  ghostPlane.visible = false;
+  document.getElementById('ghost-legend').style.display = 'none';
+  setTimeout(() => { gameLevel < 3 ? startLevel(gameLevel + 1) : showResults(); }, 1800);
+}
+
+// ─── GAME LOGIC ───────────────────────────────────────────────────
+function randomAngle() { return Math.floor(Math.random() * 360) - 180; }
+
+function startLevel(lvl) {
+  gameLevel = lvl;
+  document.getElementById('cur-level').textContent = lvl;
+  targetYaw   = randomAngle();
+  targetPitch = Math.floor(Math.random() * 160) - 80;
+  targetRoll  = Math.floor(Math.random() * 120) - 60;
+  document.getElementById('gt-yaw').textContent   = targetYaw + '°';
+  document.getElementById('gt-pitch').textContent = targetPitch + '°';
+  document.getElementById('gt-roll').textContent  = targetRoll + '°';
+  setGhostRotation(targetYaw, targetPitch, targetRoll);
+  ghostPlane.visible = true;
+  document.getElementById('ghost-legend').style.display = 'block';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('confirm-btn').disabled = false;
+  levelStartTime = Date.now();
+  startTimer(TIME_LIMITS[lvl - 1]);
+}
+
+function confirmOrientation() {
+  stopTimer();
+  const elapsed  = (Date.now() - levelStartTime) / 1000;
+  const timeLimit = TIME_LIMITS[gameLevel - 1];
+  const maxPts    = MAX_PTS[gameLevel - 1];
+  const dy = angleDiff(curYaw, targetYaw);
+  const dp = angleDiff(curPitch, targetPitch);
+  const dr = angleDiff(curRoll, targetRoll);
+  const avgDiff = (dy + dp + dr) / 3;
+  const tol = [35, 25, 15][gameLevel - 1];
+  let pts = 0;
+  if (avgDiff <= tol) {
+    const precPts = Math.round(maxPts * 0.70 * Math.max(0, 1 - avgDiff / tol));
+    const spdPts  = Math.round(maxPts * 0.30 * Math.max(0, 1 - elapsed / timeLimit));
+    pts = Math.max(precPts + spdPts, 10);
+  }
+  levelScores[gameLevel - 1] = pts;
+  totalScore = levelScores.reduce((a,b) => a+b, 0);
+  document.getElementById(['s1','s2','s3'][gameLevel-1]).textContent = pts;
+  document.getElementById('cur-score').textContent = totalScore;
+  const tUsed = Math.round(elapsed * 10) / 10;
+  document.getElementById('feedback').textContent =
+    avgDiff <= 5   ? `PERFECTO! +${pts} PTS (${tUsed}s)` :
+    avgDiff <= tol ? `BIEN! +${pts} PTS — Δ${Math.round(avgDiff)}° en ${tUsed}s` :
+                     `MUY LEJOS (Δ${Math.round(avgDiff)}°) — 0 PTS`;
+  document.getElementById('confirm-btn').disabled = true;
+  ghostPlane.visible = false;
+  document.getElementById('ghost-legend').style.display = 'none';
+  // Shoot particles if score
+  if (pts > 0) spawnParticles();
+  setTimeout(() => { gameLevel < 3 ? startLevel(gameLevel + 1) : showResults(); }, 1800);
+}
+
+// ─── CELEBRATION PARTICLES ────────────────────────────────────────
+let particleSystem = null;
+let particleVelocities = [];
+let particleLife = 0;
+
+function spawnParticles() {
+  if (particleSystem) scene.remove(particleSystem);
+  const count = 80;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  particleVelocities = [];
+  for (let i = 0; i < count; i++) {
+    pos[i*3] = 0; pos[i*3+1] = 0; pos[i*3+2] = 0;
+    particleVelocities.push(new THREE.Vector3(
+      (Math.random()-0.5) * 0.15,
+      Math.random() * 0.1 + 0.03,
+      (Math.random()-0.5) * 0.15
+    ));
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const mat = new THREE.PointsMaterial({
+    color: 0xffd700, size: 0.12, transparent: true, opacity: 1
+  });
+  particleSystem = new THREE.Points(geo, mat);
+  scene.add(particleSystem);
+  particleLife = 1.0;
+}
+
+function updateParticles() {
+  if (!particleSystem || particleLife <= 0) return;
+  particleLife -= 0.015;
+  particleSystem.material.opacity = Math.max(0, particleLife);
+  const pos = particleSystem.geometry.getAttribute('position');
+  for (let i = 0; i < particleVelocities.length; i++) {
+    pos.setX(i, pos.getX(i) + particleVelocities[i].x);
+    pos.setY(i, pos.getY(i) + particleVelocities[i].y);
+    pos.setZ(i, pos.getZ(i) + particleVelocities[i].z);
+    particleVelocities[i].y -= 0.002; // gravity
+  }
+  pos.needsUpdate = true;
+  if (particleLife <= 0) { scene.remove(particleSystem); particleSystem = null; }
+}
+
+// ─── RESULTS ──────────────────────────────────────────────────────
+function showResults() {
+  stopTimer();
+  document.getElementById('timer-wrap').style.display = 'none';
+  document.getElementById('final-score').textContent = totalScore;
+  document.getElementById('level-breakdown').innerHTML =
+    `NIVEL 1: ${levelScores[0]} / ${MAX_PTS[0]}<br>` +
+    `NIVEL 2: ${levelScores[1]} / ${MAX_PTS[1]}<br>` +
+    `NIVEL 3: ${levelScores[2]} / ${MAX_PTS[2]}`;
+  const pct = totalScore / MAX_PTS.reduce((a,b) => a+b, 0);
+  document.getElementById('grade-text').textContent =
+    pct >= 0.9 ? 'AS DE LA AVIACIÓN' :
+    pct >= 0.7 ? 'PILOTO EXPERTO' :
+    pct >= 0.5 ? 'CADETE PROMETEDOR' : 'SIGUE ENTRENANDO';
+  document.getElementById('result-overlay').style.display = 'flex';
+}
+
+// ─── RENDER LOOP ──────────────────────────────────────────────────
+let frame = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  frame++;
+
+  // Slow star rotation for parallax
+  stars.rotation.y += 0.00008;
+  stars.rotation.x += 0.00003;
+
+  // Twinkle effect
+  if (frame % 4 === 0) {
+    const sizes = stars.geometry.getAttribute('size');
+    if (sizes) {
+      for (let i = 0; i < 30; i++) {
+        const idx = Math.floor(Math.random() * sizes.count);
+        sizes.setX(idx, Math.random() * 2.5 + 0.3);
+      }
+      sizes.needsUpdate = true;
+    }
+  }
+
+  if (!gyroActive) demoRotate();
+
+  updateTrail();
+  updateParticles();
+
+  // Ghost pulse
+  if (ghostPlane.visible) {
+    const pulse = 0.3 + Math.sin(frame * 0.08) * 0.1;
+    ghostPlane.traverse(child => {
+      if (child.isMesh && child.material && child.material.transparent) {
+        child.material.opacity = Math.max(0.15, Math.min(0.5, pulse));
+      }
+    });
+  }
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// ─── UI EVENTS ────────────────────────────────────────────────────
+document.getElementById('btn-explore').addEventListener('click', () => {
+  mode = 'explore';
+  document.getElementById('overlay').style.display = 'none';
+  document.getElementById('explore-ui').style.display = 'block';
+  document.getElementById('game-ui').style.display = 'none';
+  document.getElementById('timer-wrap').style.display = 'none';
+  startGyro();
+});
+
+function initGame() {
+  mode = 'game';
+  document.getElementById('explore-ui').style.display = 'none';
+  document.getElementById('game-ui').style.display = 'flex';
+  document.getElementById('timer-wrap').style.display = 'block';
+  levelScores = [0,0,0]; totalScore = 0;
+  document.getElementById('cur-score').textContent = '0';
+  ['s1','s2','s3'].forEach(id => document.getElementById(id).textContent = '—');
+  startLevel(1);
+  startGyro();
+}
+
+document.getElementById('btn-play').addEventListener('click', () => {
+  document.getElementById('overlay').style.display = 'none';
+  initGame();
+});
+
+document.getElementById('confirm-btn').addEventListener('click', confirmOrientation);
+
+document.getElementById('play-again-btn').addEventListener('click', () => {
+  document.getElementById('result-overlay').style.display = 'none';
+  initGame();
+});
+</script>
+</body>
+</html>
