@@ -14,7 +14,7 @@
     }
     #header {
       width:100%; text-align:center;
-      padding:8px; background:rgba(10,10,30,0.95);
+      padding:8px; background:rgba(10,10,30,0.97);
       border-bottom:1px solid #1e3a5f;
       font-size:0.85rem; color:#a0c4ff;
       letter-spacing:1px; text-transform:uppercase;
@@ -25,60 +25,82 @@
     /* BOTTOM BAR */
     #bottom {
       position:fixed; bottom:0; left:0; width:100%;
-      background:rgba(10,10,30,0.95);
+      background:rgba(10,10,30,0.97);
       border-top:1px solid #1e3a5f;
-      padding:10px 10px 16px;
+      padding:8px 10px 14px;
     }
+
+    /* EXPLORE UI */
     #angles {
-      display:flex; justify-content:space-around; margin-bottom:8px;
+      display:flex; justify-content:space-around; margin-bottom:4px;
     }
     .angle-box { text-align:center; flex:1; }
-    .angle-label { font-size:0.6rem; color:#888; text-transform:uppercase; }
-    .angle-name  { font-size:0.9rem; font-weight:bold; }
+    .angle-label { font-size:0.55rem; color:#888; text-transform:uppercase; }
+    .angle-name  { font-size:0.85rem; font-weight:bold; }
     .angle-value { font-size:1.3rem; font-weight:bold; font-variant-numeric:tabular-nums; }
     .yaw   .angle-name,.yaw   .angle-value { color:#ff6b6b; }
     .pitch .angle-name,.pitch .angle-value { color:#6bffb8; }
     .roll  .angle-name,.roll  .angle-value { color:#6bb8ff; }
 
     /* GAME UI */
-    #game-ui { display:none; flex-direction:column; align-items:center; gap:6px; }
-    #target-display {
+    #game-ui { display:none; flex-direction:column; align-items:center; gap:5px; width:100%; }
+
+    /* Timer ring */
+    #timer-wrap {
+      position:relative; width:64px; height:64px;
+      position:fixed; top:48px; left:10px;
+    }
+    #timer-svg { transform:rotate(-90deg); }
+    #timer-circle {
+      fill:none; stroke:#a0c4ff; stroke-width:5;
+      stroke-dasharray:157; stroke-dashoffset:0;
+      transition: stroke 0.3s;
+    }
+    #timer-text {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      font-size:1.3rem; font-weight:bold; color:#a0c4ff;
+    }
+
+    .game-angles-row {
       display:flex; justify-content:space-around; width:100%;
     }
-    .target-box { text-align:center; flex:1; }
-    .target-label { font-size:0.6rem; color:#888; text-transform:uppercase; }
-    .target-name  { font-size:0.8rem; font-weight:bold; }
-    .target-value { font-size:1.2rem; font-weight:bold; }
-    .yaw-t   .target-name,.yaw-t   .target-value { color:#ff6b6b; }
-    .pitch-t .target-name,.pitch-t .target-value { color:#6bffb8; }
-    .roll-t  .target-name,.roll-t  .target-value { color:#6bb8ff; }
-    #level-info {
-      font-size:0.8rem; color:#aaa;
-    }
-    #score-bar {
-      display:flex; gap:20px; font-size:0.85rem;
+    .ga-box { text-align:center; flex:1; }
+    .ga-label { font-size:0.52rem; color:#888; text-transform:uppercase; }
+    .ga-axis  { font-size:0.7rem; font-weight:bold; }
+    .ga-cur   { font-size:1.05rem; font-weight:bold; font-variant-numeric:tabular-nums; }
+    .ga-tgt   { font-size:0.72rem; color:#aaa; font-variant-numeric:tabular-nums; }
+    .ga-diff  { font-size:0.62rem; font-variant-numeric:tabular-nums; }
+
+    .yaw-g   .ga-axis,.yaw-g   .ga-cur { color:#ff6b6b; }
+    .pitch-g .ga-axis,.pitch-g .ga-cur { color:#6bffb8; }
+    .roll-g  .ga-axis,.roll-g  .ga-cur { color:#6bb8ff; }
+
+    #level-score-row {
+      display:flex; gap:14px; font-size:0.78rem; align-items:center;
     }
     #confirm-btn {
-      padding:8px 28px; background:#a0c4ff; color:#0a0a1a;
+      padding:9px 26px; background:#a0c4ff; color:#0a0a1a;
       border:none; border-radius:20px; font-size:0.9rem;
-      font-weight:bold; cursor:pointer;
+      font-weight:bold; cursor:pointer; letter-spacing:0.5px;
     }
+    #confirm-btn:disabled { opacity:0.4; cursor:default; }
     #feedback {
-      font-size:0.85rem; color:#ffd700; min-height:18px; text-align:center;
+      font-size:0.82rem; color:#ffd700; min-height:16px; text-align:center;
     }
 
     /* OVERLAY */
     #overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.92);
+      position:fixed; inset:0; background:rgba(0,0,0,0.93);
       display:flex; flex-direction:column; align-items:center;
       justify-content:center; z-index:10; padding:28px; text-align:center;
     }
-    #overlay h2 { font-size:1.4rem; color:#a0c4ff; margin-bottom:12px; }
-    #overlay p  { font-size:0.9rem; color:#ccc; margin-bottom:8px; line-height:1.6; max-width:320px; }
-    .legend { display:flex; flex-direction:column; gap:6px; margin:12px 0; width:100%; max-width:300px; }
+    #overlay h2 { font-size:1.4rem; color:#a0c4ff; margin-bottom:10px; }
+    #overlay p  { font-size:0.88rem; color:#ccc; margin-bottom:6px; line-height:1.6; max-width:320px; }
+    .legend { display:flex; flex-direction:column; gap:6px; margin:10px 0; width:100%; max-width:300px; }
     .legend-item { display:flex; align-items:center; gap:10px; font-size:0.85rem; }
     .dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
-    .btn-row { display:flex; gap:16px; margin-top:18px; }
+    .btn-row { display:flex; gap:16px; margin-top:16px; }
     .main-btn {
       padding:13px 28px; border:none; border-radius:25px;
       font-size:1rem; font-weight:bold; cursor:pointer; letter-spacing:1px;
@@ -88,16 +110,14 @@
 
     /* RESULT OVERLAY */
     #result-overlay {
-      position:fixed; inset:0; background:rgba(0,0,0,0.93);
+      position:fixed; inset:0; background:rgba(0,0,0,0.95);
       display:none; flex-direction:column; align-items:center;
       justify-content:center; z-index:20; padding:30px; text-align:center;
     }
-    #result-overlay h2 { font-size:1.6rem; color:#ffd700; margin-bottom:10px; }
-    #result-overlay .big-score {
-      font-size:3.5rem; font-weight:bold; color:#a0c4ff; margin:10px 0;
-    }
-    #result-overlay .level-scores { font-size:0.9rem; color:#aaa; line-height:2; margin-bottom:16px; }
-    #result-overlay .grade { font-size:1.1rem; color:#6bffb8; margin-bottom:20px; }
+    #result-overlay h2 { font-size:1.5rem; color:#ffd700; margin-bottom:8px; }
+    .big-score { font-size:3.8rem; font-weight:bold; color:#a0c4ff; margin:8px 0; }
+    .level-scores { font-size:0.9rem; color:#aaa; line-height:2.2; margin-bottom:12px; }
+    .grade { font-size:1.2rem; color:#6bffb8; margin-bottom:20px; }
     #play-again-btn {
       padding:12px 32px; background:#a0c4ff; color:#0a0a1a;
       border:none; border-radius:25px; font-size:1rem; font-weight:bold; cursor:pointer;
@@ -105,23 +125,34 @@
 
     #axes-legend {
       position:fixed; top:46px; right:8px;
-      background:rgba(10,10,30,0.8); border:1px solid #1e3a5f;
-      border-radius:8px; padding:6px 10px; font-size:0.68rem; line-height:1.8;
+      background:rgba(10,10,30,0.85); border:1px solid #1e3a5f;
+      border-radius:8px; padding:6px 10px; font-size:0.65rem; line-height:1.9;
     }
     .ax-r{color:#ff6b6b} .ax-g{color:#6bffb8} .ax-b{color:#6bb8ff}
 
-    /* target ghost cube color */
+    /* countdown pulse anim */
+    @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .pulse-red { animation: pulse-red 0.5s infinite; }
   </style>
 </head>
 <body>
 
-<div id="header">🌐 Ángulos de Euler</div>
+<div id="header">🌐 Ángulos de Euler — Giroscopio</div>
 <div id="canvas-container"><canvas id="c"></canvas></div>
 
 <div id="axes-legend">
   <div class="ax-r">■ Yaw ψ</div>
   <div class="ax-g">■ Pitch θ</div>
   <div class="ax-b">■ Roll φ</div>
+</div>
+
+<!-- Timer (solo en juego) -->
+<div id="timer-wrap" style="display:none">
+  <svg id="timer-svg" width="64" height="64" viewBox="0 0 64 64">
+    <circle cx="32" cy="32" r="25" fill="none" stroke="#1e3a5f" stroke-width="5"/>
+    <circle id="timer-circle" cx="32" cy="32" r="25"/>
+  </svg>
+  <div id="timer-text">—</div>
 </div>
 
 <!-- BOTTOM BAR -->
@@ -149,25 +180,31 @@
 
   <!-- GAME MODE -->
   <div id="game-ui">
-    <div id="level-info">Nivel <span id="cur-level">1</span> de 3</div>
-    <div style="font-size:0.72rem;color:#888;margin-bottom:2px;">🎯 Orientación objetivo:</div>
-    <div id="target-display">
-      <div class="target-box yaw-t">
-        <div class="target-label">Yaw ψ</div>
-        <div class="target-value" id="t-yaw">—</div>
+    <!-- Live angle comparison -->
+    <div class="game-angles-row">
+      <div class="ga-box yaw-g">
+        <div class="ga-label">Yaw ψ</div>
+        <div class="ga-cur" id="gc-yaw">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-yaw">—</span></div>
+        <div class="ga-diff" id="gd-yaw">Δ —</div>
       </div>
-      <div class="target-box pitch-t">
-        <div class="target-label">Pitch θ</div>
-        <div class="target-value" id="t-pitch">—</div>
+      <div class="ga-box pitch-g">
+        <div class="ga-label">Pitch θ</div>
+        <div class="ga-cur" id="gc-pitch">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-pitch">—</span></div>
+        <div class="ga-diff" id="gd-pitch">Δ —</div>
       </div>
-      <div class="target-box roll-t">
-        <div class="target-label">Roll φ</div>
-        <div class="target-value" id="t-roll">—</div>
+      <div class="ga-box roll-g">
+        <div class="ga-label">Roll φ</div>
+        <div class="ga-cur" id="gc-roll">0°</div>
+        <div class="ga-tgt">🎯 <span id="gt-roll">—</span></div>
+        <div class="ga-diff" id="gd-roll">Δ —</div>
       </div>
     </div>
-    <div id="score-bar">
+    <div id="level-score-row">
+      <span style="color:#a0c4ff">Nivel <b id="cur-level">1</b>/3</span>
       <span>Puntos: <b id="cur-score">0</b></span>
-      <span style="color:#888">L1:<b id="s1">—</b> L2:<b id="s2">—</b> L3:<b id="s3">—</b></span>
+      <span style="color:#888;font-size:0.7rem">L1:<b id="s1">—</b> L2:<b id="s2">—</b> L3:<b id="s3">—</b></span>
     </div>
     <div id="feedback"></div>
     <button id="confirm-btn">✅ ¡Confirmar orientación!</button>
@@ -177,13 +214,13 @@
 <!-- MAIN OVERLAY -->
 <div id="overlay">
   <h2>🎮 Ángulos de Euler<br/>con Giroscopio</h2>
-  <p>Mueve tu celular y aprende cómo los 3 ángulos de Euler describen su orientación.</p>
+  <p>Mueve tu celular y observa cómo los 3 ángulos de Euler describen su orientación en tiempo real.</p>
   <div class="legend">
-    <div class="legend-item"><div class="dot" style="background:#ff6b6b"></div><span><b>Yaw (ψ)</b> — Girar horizontal</span></div>
+    <div class="legend-item"><div class="dot" style="background:#ff6b6b"></div><span><b>Yaw (ψ)</b> — Girar horizontal (izquierda/derecha)</span></div>
     <div class="legend-item"><div class="dot" style="background:#6bffb8"></div><span><b>Pitch (θ)</b> — Inclinar adelante/atrás</span></div>
     <div class="legend-item"><div class="dot" style="background:#6bb8ff"></div><span><b>Roll (φ)</b> — Ladear el celular</span></div>
   </div>
-  <p style="font-size:0.78rem;color:#888;">Elige un modo:</p>
+  <p style="font-size:0.78rem;color:#888;">En el modo 🎯 Jugar: imita la orientación indicada antes de que se acabe el tiempo.<br/>¡Más rápido = más puntos!</p>
   <div class="btn-row">
     <button class="main-btn" id="btn-explore">🔍 Explorar</button>
     <button class="main-btn" id="btn-play">🎯 Jugar</button>
@@ -201,13 +238,13 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-// ---------- THREE.JS SETUP ----------
+// ── THREE.JS SETUP ──────────────────────────────────────────────
 const container = document.getElementById('canvas-container');
-const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
+const canvas    = document.getElementById('c');
+const renderer  = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
 renderer.setPixelRatio(window.devicePixelRatio);
 
-const scene = new THREE.Scene();
+const scene  = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(50,1,0.1,100);
 camera.position.set(0,0,4.5);
 
@@ -218,11 +255,11 @@ function resize(){
 resize(); window.addEventListener('resize',resize);
 
 scene.add(new THREE.AmbientLight(0xffffff,0.5));
-const dLight=new THREE.DirectionalLight(0xffffff,0.8);
+const dLight = new THREE.DirectionalLight(0xffffff,0.8);
 dLight.position.set(5,5,5); scene.add(dLight);
 
 // Player cube
-const geo = new THREE.BoxGeometry(1.3,1.3,1.3);
+const geo  = new THREE.BoxGeometry(1.3,1.3,1.3);
 const mats = [
   new THREE.MeshLambertMaterial({color:0xff4444}),
   new THREE.MeshLambertMaterial({color:0xff9944}),
@@ -239,22 +276,30 @@ cube.add(new THREE.LineSegments(
 ));
 
 // Target ghost cube
-const targetGeo = new THREE.BoxGeometry(1.3,1.3,1.3);
-const targetMat = new THREE.MeshLambertMaterial({color:0xffd700,wireframe:true,opacity:0.5,transparent:true});
-const targetCube = new THREE.Mesh(targetGeo, targetMat);
+const targetCube = new THREE.Mesh(
+  new THREE.BoxGeometry(1.3,1.3,1.3),
+  new THREE.MeshLambertMaterial({color:0xffd700,wireframe:true,opacity:0.55,transparent:true})
+);
 targetCube.visible = false;
 scene.add(targetCube);
 
 scene.add(new THREE.AxesHelper(1.1));
 const grid = new THREE.GridHelper(6,10,0x222244,0x111133);
-grid.position.y=-1.5; scene.add(grid);
+grid.position.y = -1.5; scene.add(grid);
 
-// ---------- STATE ----------
-let gyroActive=false, demoAngle=0;
-let mode='none'; // 'explore' or 'game'
+// ── STATE ───────────────────────────────────────────────────────
+let gyroActive = false, demoAngle = 0;
+let mode = 'none';
 let curYaw=0, curPitch=0, curRoll=0;
 let targetYaw=0, targetPitch=0, targetRoll=0;
 let gameLevel=1, levelScores=[0,0,0], totalScore=0;
+
+// Timer state
+const TIME_LIMITS = [20, 15, 12];   // segundos por nivel
+const MAX_PTS     = [300, 400, 500]; // pts máximos por nivel (velocidad + precisión)
+let timerSeconds  = 0;
+let timerInterval = null;
+let levelStartTime = 0;
 
 const euler = new THREE.Euler(0,0,0,'ZXY');
 
@@ -269,16 +314,15 @@ function setCubeRotation(y,p,r){
 }
 
 function setTargetRotation(y,p,r){
-  const te = new THREE.Euler(
+  targetCube.rotation.copy(new THREE.Euler(
     THREE.MathUtils.degToRad(p),
     THREE.MathUtils.degToRad(r),
     THREE.MathUtils.degToRad(y),
     'ZXY'
-  );
-  targetCube.rotation.copy(te);
+  ));
 }
 
-// ---------- GYRO ----------
+// ── GYRO ────────────────────────────────────────────────────────
 function startGyro(){
   if(typeof DeviceOrientationEvent!=='undefined' &&
      typeof DeviceOrientationEvent.requestPermission==='function'){
@@ -289,7 +333,7 @@ function startGyro(){
 }
 
 function enableGyro(){
-  gyroActive=true;
+  gyroActive = true;
   window.addEventListener('deviceorientation',(e)=>{
     if(e.alpha===null) return;
     curYaw   = Math.round(e.alpha);
@@ -301,15 +345,16 @@ function enableGyro(){
       document.getElementById('val-pitch').textContent = curPitch+'°';
       document.getElementById('val-roll').textContent  = curRoll+'°';
     }
+    if(mode==='game') updateGameAnglesDisplay();
   },true);
 }
 
-// ---------- DEMO ANIMATION ----------
+// ── DEMO ANIMATION ──────────────────────────────────────────────
 function demoRotate(){
-  demoAngle+=0.005;
-  cube.rotation.x=demoAngle*0.7;
-  cube.rotation.y=demoAngle;
-  cube.rotation.z=demoAngle*0.4;
+  demoAngle += 0.005;
+  cube.rotation.x = demoAngle*0.7;
+  cube.rotation.y = demoAngle;
+  cube.rotation.z = demoAngle*0.4;
   curYaw   = Math.round(THREE.MathUtils.radToDeg(cube.rotation.z));
   curPitch = Math.round(THREE.MathUtils.radToDeg(cube.rotation.x));
   curRoll  = Math.round(THREE.MathUtils.radToDeg(cube.rotation.y));
@@ -318,93 +363,184 @@ function demoRotate(){
     document.getElementById('val-pitch').textContent = ((curPitch%360+360)%360)+'°';
     document.getElementById('val-roll').textContent  = ((curRoll%360+360)%360)+'°';
   }
+  if(mode==='game') updateGameAnglesDisplay();
 }
 
-// ---------- GAME LOGIC ----------
-const TOLERANCES = [30, 20, 10]; // grados de tolerancia por nivel
-const MAX_PTS    = [100, 150, 200];
+// ── GAME: live angle display ─────────────────────────────────────
+function angleDiff(a,b){
+  let d = Math.abs(a-b) % 360;
+  return d>180 ? 360-d : d;
+}
 
+function diffColor(d, tol){
+  if(d <= tol*0.25) return '#6bffb8';
+  if(d <= tol*0.6)  return '#ffd700';
+  return '#ff6b6b';
+}
+
+function updateGameAnglesDisplay(){
+  const tol = [35,25,15][gameLevel-1];
+  const pairs = [
+    ['gc-yaw',  'gd-yaw',  curYaw,   targetYaw],
+    ['gc-pitch','gd-pitch', curPitch, targetPitch],
+    ['gc-roll', 'gd-roll',  curRoll,  targetRoll],
+  ];
+  pairs.forEach(([cId,dId,cur,tgt])=>{
+    const d = angleDiff(cur,tgt);
+    const cel = document.getElementById(cId);
+    const del = document.getElementById(dId);
+    cel.textContent = cur+'°';
+    del.textContent = 'Δ '+d+'°';
+    del.style.color = diffColor(d, tol);
+  });
+}
+
+// ── TIMER ────────────────────────────────────────────────────────
+const timerCircle = document.getElementById('timer-circle');
+const timerText   = document.getElementById('timer-text');
+const CIRCUMF = 2*Math.PI*25; // 157
+
+function updateTimerUI(remaining, total){
+  const pct = remaining / total;
+  timerCircle.style.strokeDashoffset = CIRCUMF*(1-pct);
+  timerText.textContent = remaining;
+  if(remaining <= 5){
+    timerCircle.style.stroke = '#ff6b6b';
+    timerText.style.color    = '#ff6b6b';
+    timerText.classList.add('pulse-red');
+  } else if(remaining <= 10){
+    timerCircle.style.stroke = '#ffd700';
+    timerText.style.color    = '#ffd700';
+    timerText.classList.remove('pulse-red');
+  } else {
+    timerCircle.style.stroke = '#a0c4ff';
+    timerText.style.color    = '#a0c4ff';
+    timerText.classList.remove('pulse-red');
+  }
+}
+
+function startTimer(seconds){
+  clearInterval(timerInterval);
+  timerSeconds = seconds;
+  updateTimerUI(timerSeconds, seconds);
+  timerInterval = setInterval(()=>{
+    timerSeconds--;
+    updateTimerUI(timerSeconds, seconds);
+    if(timerSeconds <= 0){
+      clearInterval(timerInterval);
+      timeOut();
+    }
+  },1000);
+}
+
+function stopTimer(){ clearInterval(timerInterval); }
+
+function timeOut(){
+  // Time's up — score 0 for this level
+  levelScores[gameLevel-1] = 0;
+  totalScore = levelScores.reduce((a,b)=>a+b,0);
+  const scoreIds=['s1','s2','s3'];
+  document.getElementById(scoreIds[gameLevel-1]).textContent = 0;
+  document.getElementById('cur-score').textContent = totalScore;
+  document.getElementById('feedback').textContent = '⏰ ¡Tiempo agotado! 0 pts';
+  document.getElementById('confirm-btn').disabled = true;
+  targetCube.visible = false;
+  setTimeout(()=>{
+    if(gameLevel<3) startLevel(gameLevel+1);
+    else showResults();
+  },1800);
+}
+
+// ── LEVEL LOGIC ──────────────────────────────────────────────────
 function randomAngle(){ return Math.floor(Math.random()*360)-180; }
 
 function startLevel(lvl){
   gameLevel = lvl;
   document.getElementById('cur-level').textContent = lvl;
   targetYaw   = randomAngle();
-  targetPitch = Math.floor(Math.random()*160)-80;  // limitar pitch
-  targetRoll  = Math.floor(Math.random()*120)-60;  // limitar roll
-  document.getElementById('t-yaw').textContent   = targetYaw+'°';
-  document.getElementById('t-pitch').textContent = targetPitch+'°';
-  document.getElementById('t-roll').textContent  = targetRoll+'°';
+  targetPitch = Math.floor(Math.random()*160)-80;
+  targetRoll  = Math.floor(Math.random()*120)-60;
+
+  document.getElementById('gt-yaw').textContent   = targetYaw+'°';
+  document.getElementById('gt-pitch').textContent = targetPitch+'°';
+  document.getElementById('gt-roll').textContent  = targetRoll+'°';
+
   setTargetRotation(targetYaw, targetPitch, targetRoll);
   targetCube.visible = true;
-  document.getElementById('feedback').textContent='';
-  document.getElementById('confirm-btn').disabled=false;
-  document.getElementById('confirm-btn').style.opacity='1';
-}
 
-function angleDiff(a,b){
-  let d = Math.abs(a-b) % 360;
-  return d>180 ? 360-d : d;
+  document.getElementById('feedback').textContent='';
+  document.getElementById('confirm-btn').disabled = false;
+
+  levelStartTime = Date.now();
+  startTimer(TIME_LIMITS[lvl-1]);
 }
 
 function confirmOrientation(){
+  stopTimer();
+
+  const elapsed = (Date.now() - levelStartTime) / 1000; // segundos usados
+  const timeLimit = TIME_LIMITS[gameLevel-1];
+  const maxPts    = MAX_PTS[gameLevel-1];
+
   const dy = angleDiff(curYaw,   targetYaw);
   const dp = angleDiff(curPitch, targetPitch);
   const dr = angleDiff(curRoll,  targetRoll);
   const avgDiff = (dy+dp+dr)/3;
-  const tol = TOLERANCES[gameLevel-1];
-  const maxPts = MAX_PTS[gameLevel-1];
+  const tol = [35,25,15][gameLevel-1];
 
   let pts = 0;
   if(avgDiff <= tol){
-    pts = Math.round(maxPts * (1 - avgDiff/tol));
-    pts = Math.max(pts, Math.round(maxPts*0.1));
+    // Puntos de precisión (0–70% del max)
+    const precisionPts = Math.round(maxPts * 0.70 * Math.max(0, 1 - avgDiff/tol));
+    // Puntos de velocidad (0–30% del max), más rápido = más puntos
+    const timeFraction = Math.max(0, 1 - elapsed/timeLimit);
+    const speedPts = Math.round(maxPts * 0.30 * timeFraction);
+    pts = precisionPts + speedPts;
+    pts = Math.max(pts, 10);
   }
 
   levelScores[gameLevel-1] = pts;
   totalScore = levelScores.reduce((a,b)=>a+b,0);
-
-  const scoreIds = ['s1','s2','s3'];
+  const scoreIds=['s1','s2','s3'];
   document.getElementById(scoreIds[gameLevel-1]).textContent = pts;
   document.getElementById('cur-score').textContent = totalScore;
 
   let msg='';
-  if(avgDiff<=5)       msg='🎯 ¡PERFECTO! +'+pts+' pts';
-  else if(avgDiff<=tol) msg='✅ ¡Bien! +'+pts+' pts (diff: '+Math.round(avgDiff)+'°)';
-  else                  msg='❌ Muy lejos (diff: '+Math.round(avgDiff)+'°) — 0 pts';
+  const tUsed = Math.round(elapsed*10)/10;
+  if(avgDiff<=5)        msg=`🎯 ¡PERFECTO! +${pts} pts (${tUsed}s)`;
+  else if(avgDiff<=tol) msg=`✅ ¡Bien! +${pts} pts — Δ${Math.round(avgDiff)}° en ${tUsed}s`;
+  else                  msg=`❌ Muy lejos (Δ${Math.round(avgDiff)}°) — 0 pts`;
 
-  document.getElementById('feedback').textContent=msg;
-  document.getElementById('confirm-btn').disabled=true;
-  document.getElementById('confirm-btn').style.opacity='0.5';
-  targetCube.visible=false;
+  document.getElementById('feedback').textContent = msg;
+  document.getElementById('confirm-btn').disabled = true;
+  targetCube.visible = false;
 
   setTimeout(()=>{
-    if(gameLevel<3){
-      startLevel(gameLevel+1);
-    } else {
-      showResults();
-    }
-  }, 1800);
+    if(gameLevel<3) startLevel(gameLevel+1);
+    else showResults();
+  },1800);
 }
 
 function showResults(){
-  const ro = document.getElementById('result-overlay');
-  document.getElementById('final-score').textContent = totalScore;
+  stopTimer();
+  document.getElementById('timer-wrap').style.display = 'none';
+  document.getElementById('final-score').textContent  = totalScore;
+  const maxTotal = MAX_PTS.reduce((a,b)=>a+b,0);
   document.getElementById('level-breakdown').innerHTML =
-    'Nivel 1: <b>'+levelScores[0]+'</b> pts (máx 100)<br>'+
-    'Nivel 2: <b>'+levelScores[1]+'</b> pts (máx 150)<br>'+
-    'Nivel 3: <b>'+levelScores[2]+'</b> pts (máx 200)';
-  const pct = totalScore/450;
-  let grade='';
-  if(pct>=0.9)       grade='🌟 ¡Maestro de Euler!';
-  else if(pct>=0.7)  grade='🎓 ¡Muy buen manejo!';
-  else if(pct>=0.5)  grade='👍 Buen intento';
-  else               grade='📚 ¡Sigue practicando!';
-  document.getElementById('grade-text').textContent=grade;
-  ro.style.display='flex';
+    `Nivel 1: <b>${levelScores[0]}</b> pts (máx ${MAX_PTS[0]})<br>`+
+    `Nivel 2: <b>${levelScores[1]}</b> pts (máx ${MAX_PTS[1]})<br>`+
+    `Nivel 3: <b>${levelScores[2]}</b> pts (máx ${MAX_PTS[2]})`;
+  const pct = totalScore / maxTotal;
+  let grade = '';
+  if(pct>=0.9)      grade='🌟 ¡Maestro de Euler!';
+  else if(pct>=0.7) grade='🎓 ¡Excelente manejo!';
+  else if(pct>=0.5) grade='👍 Buen intento';
+  else              grade='📚 ¡Sigue practicando!';
+  document.getElementById('grade-text').textContent = grade;
+  document.getElementById('result-overlay').style.display = 'flex';
 }
 
-// ---------- ANIMATION ----------
+// ── ANIMATION ───────────────────────────────────────────────────
 function animate(){
   requestAnimationFrame(animate);
   if(!gyroActive) demoRotate();
@@ -412,36 +548,38 @@ function animate(){
 }
 animate();
 
-// ---------- BUTTONS ----------
+// ── BUTTONS ─────────────────────────────────────────────────────
 document.getElementById('btn-explore').addEventListener('click',()=>{
   mode='explore';
   document.getElementById('overlay').style.display='none';
   document.getElementById('explore-ui').style.display='block';
   document.getElementById('game-ui').style.display='none';
+  document.getElementById('timer-wrap').style.display='none';
   startGyro();
 });
 
-document.getElementById('btn-play').addEventListener('click',()=>{
+function initGame(){
   mode='game';
-  document.getElementById('overlay').style.display='none';
   document.getElementById('explore-ui').style.display='none';
   document.getElementById('game-ui').style.display='flex';
+  document.getElementById('timer-wrap').style.display='block';
   levelScores=[0,0,0]; totalScore=0;
   document.getElementById('cur-score').textContent='0';
   ['s1','s2','s3'].forEach(id=>document.getElementById(id).textContent='—');
   startLevel(1);
   startGyro();
+}
+
+document.getElementById('btn-play').addEventListener('click',()=>{
+  document.getElementById('overlay').style.display='none';
+  initGame();
 });
 
 document.getElementById('confirm-btn').addEventListener('click', confirmOrientation);
 
 document.getElementById('play-again-btn').addEventListener('click',()=>{
   document.getElementById('result-overlay').style.display='none';
-  levelScores=[0,0,0]; totalScore=0;
-  document.getElementById('cur-score').textContent='0';
-  ['s1','s2','s3'].forEach(id=>document.getElementById(id).textContent='—');
-  startLevel(1);
-  targetCube.visible=true;
+  initGame();
 });
 </script>
 </body>
